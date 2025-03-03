@@ -1,0 +1,45 @@
+#include <SPI.h>
+#include <mcp_can.h>
+
+// Definire pini SPI pentru MCP2515
+#define CAN_CS_PIN 10  
+MCP_CAN CAN0(CAN_CS_PIN);  
+
+// Structură pentru mesaje CAN
+long unsigned int rxId;
+unsigned char len = 0;
+unsigned char rxBuf[8];
+
+void setup() {
+    Serial.begin(115200);
+    
+    // Inițializare CAN MCP2515 la 500kbps (viteză standard vehicul)
+    if (CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_16MHZ) == CAN_OK) {
+        Serial.println("CAN Bus Ready");
+    } else {
+        Serial.println("Error initializing CAN Bus");
+        while (1);
+    }
+    
+    CAN0.setMode(MCP_NORMAL);  // Modul normal pentru recepție date CAN
+}
+
+void loop() {
+    // Verificare dacă sunt mesaje CAN disponibile
+    if (CAN0.checkReceive() == CAN_MSGAVAIL) {
+        CAN0.readMsgBuf(&rxId, &len, rxBuf);
+
+        Serial.print("ID: ");
+        Serial.print(rxId, HEX);
+        Serial.print(" Data: ");
+
+        for (int i = 0; i < len; i++) {
+            Serial.print(rxBuf[i], HEX);
+            Serial.print(" ");
+        }
+        Serial.println();
+    }
+
+    delay(100);
+}
+CAN
